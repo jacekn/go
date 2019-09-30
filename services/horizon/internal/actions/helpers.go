@@ -368,6 +368,15 @@ func (base *Base) GetAddress(name string, opts ...Opt) (result string) {
 	return result
 }
 
+func buildAccountID(address string) (xdr.AccountId, error) {
+	accountID := xdr.AccountId{}
+	if err := accountID.SetAddress(address); err != nil {
+		return accountID, err
+	}
+
+	return accountID, nil
+}
+
 // GetAccountID retireves an xdr.AccountID by attempting to decode a stellar
 // address at the provided name.
 func GetAccountID(r *http.Request, name string) (xdr.AccountId, error) {
@@ -441,6 +450,53 @@ func getAssetType(r *http.Request, name string) (xdr.AssetType, error) {
 	}
 
 	return t, nil
+}
+
+// BuildAsset creates a new asset from a given asset_type, asset_code, and asset_issuer.
+func BuildAsset(assetType, issuer, code string) (xdr.Asset, error) {
+	var value interface{}
+
+	t, err := assets.Parse(assetType)
+	if err != nil {
+		return xdr.Asset{}, err
+	}
+
+	switch t {
+	case xdr.AssetTypeAssetTypeCreditAlphanum4:
+		a := xdr.AssetAlphaNum4{}
+		a.Issuer, err = buildAccountID(issuer)
+
+		if err != nil {
+			return xdr.Asset{}, err
+		}
+
+		if len(code) > len(a.AssetCode) {
+			return xdr.Asset{}, errors.New("code too long")
+		}
+
+		copy(a.AssetCode[:len(code)], []byte(code))
+		value = a
+	case xdr.AssetTypeAssetTypeCreditAlphanum12:
+		a := xdr.AssetAlphaNum12{}
+		a.Issuer, err = buildAccountID(issuer)
+		if err != nil {
+			return xdr.Asset{}, err
+		}
+
+		if len(code) > len(a.AssetCode) {
+			return xdr.Asset{}, errors.New("code too long")
+		}
+
+		copy(a.AssetCode[:len(code)], []byte(code))
+		value = a
+	}
+
+	result, err := xdr.NewAsset(t, value)
+	if err != nil {
+		panic(err)
+	}
+
+	return result, nil
 }
 
 // GetAsset decodes an asset from the request fields prefixed by `prefix`.  To

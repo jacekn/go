@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi"
+
 	"github.com/stellar/go/protocols/horizon"
 	"github.com/stellar/go/services/horizon/internal/actions"
 	"github.com/stellar/go/services/horizon/internal/db2/history"
