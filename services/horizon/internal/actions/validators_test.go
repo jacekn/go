@@ -14,6 +14,54 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
+func TestAssetTypeValidtor(t *testing.T) {
+	type Query struct {
+		AssetType string `valid:"assetType~invalid asset type"`
+	}
+
+	for _, testCase := range []struct {
+		assetType string
+		valid     bool
+	}{
+		{
+			"native",
+			true,
+		},
+		{
+			"credit_alphanum4",
+			true,
+		},
+		{
+			"credit_alphanum12",
+			true,
+		},
+		{
+			"",
+			true,
+		},
+		{
+			"stellar_asset_type",
+			false,
+		},
+	} {
+		t.Run(testCase.assetType, func(t *testing.T) {
+			tt := assert.New(t)
+
+			q := Query{
+				AssetType: testCase.assetType,
+			}
+
+			result, err := govalidator.ValidateStruct(q)
+			if testCase.valid {
+				tt.NoError(err)
+				tt.True(result)
+			} else {
+				tt.Equal("invalid asset type", err.Error())
+			}
+		})
+	}
+}
+
 func TestAccountIDValidator(t *testing.T) {
 	type Query struct {
 		Account string `valid:"accountID~invalid address"`
@@ -56,5 +104,4 @@ func TestAccountIDValidator(t *testing.T) {
 			}
 		})
 	}
-
 }
