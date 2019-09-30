@@ -15,6 +15,7 @@ import (
 	"github.com/stellar/go/services/horizon/internal/ledger"
 	"github.com/stellar/go/services/horizon/internal/test"
 	"github.com/stellar/go/services/horizon/internal/toid"
+	"github.com/stellar/go/support/errors"
 	"github.com/stellar/go/support/render/problem"
 	"github.com/stellar/go/xdr"
 )
@@ -603,6 +604,33 @@ func TestGetParams(t *testing.T) {
 		p := err.(*problem.P)
 		tt.Assert.Equal("bad_request", p.Type)
 		tt.Assert.Equal("account_id", p.Extras["invalid_field"])
+	}
+}
+
+type ParamsValidator struct {
+	Account string `schema:"account_id" valid:"required"`
+}
+
+func (pv ParamsValidator) Validate() error {
+	return problem.MakeInvalidFieldProblem(
+		"Name",
+		errors.New("Invalid"),
+	)
+}
+
+func TestGetParamsCustomValidator(t *testing.T) {
+	tt := test.Start(t)
+	defer tt.Finish()
+
+	urlParams := map[string]string{"account_id": "1"}
+	r := makeAction("/transactions", urlParams).R
+	qp := ParamsValidator{}
+	err := GetParams(&qp, r)
+
+	if tt.Assert.IsType(&problem.P{}, err) {
+		p := err.(*problem.P)
+		tt.Assert.Equal("bad_request", p.Type)
+		tt.Assert.Equal("Name", p.Extras["invalid_field"])
 	}
 }
 

@@ -4,6 +4,11 @@ import (
 	"github.com/asaskevich/govalidator"
 )
 
+// Validateable allow structs to define their own custom validations.
+type Validateable interface {
+	Validate() error
+}
+
 func InitValidators() {
 	govalidator.TagMap["accountID"] = govalidator.Validator(isAccountID)
 }

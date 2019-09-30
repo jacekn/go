@@ -804,6 +804,12 @@ func GetParams(dst interface{}, r *http.Request) error {
 		return err
 	}
 
+	if v, ok := dst.(Validateable); ok {
+		if err := v.Validate(); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
