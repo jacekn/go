@@ -14,7 +14,111 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func TestAssetTypeValidtor(t *testing.T) {
+func TestBuyingCodeValidator(t *testing.T) {
+	for _, testCase := range []struct {
+		assetType string
+		assetCode string
+		valid     bool
+	}{
+		{
+			"native",
+			"",
+			true,
+		},
+		{
+			"credit_alphanum4",
+			"USD",
+			true,
+		},
+		{
+			"credit_alphanum12",
+			"OHLOOONG",
+			true,
+		},
+		{
+			"credit_alphanum4",
+			"USDXD",
+			false,
+		},
+		{
+			"credit_alphanum12",
+			"OHLOOOOOOOOOONG",
+			false,
+		},
+	} {
+		t.Run(testCase.assetType, func(t *testing.T) {
+			tt := assert.New(t)
+
+			q := SellingBuyingAssetQueryParams{
+				BuyingAssetType: testCase.assetType,
+				BuyingAssetCode: testCase.assetCode,
+			}
+
+			result, err := govalidator.ValidateStruct(q)
+			if testCase.valid {
+				tt.NoError(err)
+				tt.True(result)
+			} else {
+				tt.Equal("code too long", err.Error())
+			}
+		})
+	}
+
+}
+
+func TestSellingCodeValidator(t *testing.T) {
+	for _, testCase := range []struct {
+		assetType string
+		assetCode string
+		valid     bool
+	}{
+		{
+			"native",
+			"",
+			true,
+		},
+		{
+			"credit_alphanum4",
+			"USD",
+			true,
+		},
+		{
+			"credit_alphanum12",
+			"OHLOOONG",
+			true,
+		},
+		{
+			"credit_alphanum4",
+			"USDXD",
+			false,
+		},
+		{
+			"credit_alphanum12",
+			"OHLOOOOOOOOOONG",
+			false,
+		},
+	} {
+		t.Run(testCase.assetType, func(t *testing.T) {
+			tt := assert.New(t)
+
+			q := SellingBuyingAssetQueryParams{
+				SellingAssetType: testCase.assetType,
+				SellingAssetCode: testCase.assetCode,
+			}
+
+			result, err := govalidator.ValidateStruct(q)
+			if testCase.valid {
+				tt.NoError(err)
+				tt.True(result)
+			} else {
+				tt.Equal("code too long", err.Error())
+			}
+		})
+	}
+
+}
+
+func TestAssetTypeValidator(t *testing.T) {
 	type Query struct {
 		AssetType string `valid:"assetType~invalid asset type"`
 	}
