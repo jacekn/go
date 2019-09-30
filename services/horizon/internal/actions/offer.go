@@ -16,13 +16,13 @@ import (
 
 // QueryParams query struct for pagination params
 // TODO: move a shared package - maybe even db2
-type QueryParams struct {
+type PageQueryParams struct {
 	Cursor string `schema:"cursor"`
 	Order  string `schema:"order"`
 	Limit  string `schema:"limit"` // todo validate uint64
 }
 
-func (q QueryParams) getLimit() uint64 {
+func (q PageQueryParams) getLimit() uint64 {
 	var (
 		def   = db2.DefaultPageSize
 		limit = q.Limit
@@ -50,7 +50,7 @@ func (q QueryParams) getLimit() uint64 {
 }
 
 // PageQuery returns the page query.
-func (q QueryParams) PageQuery() db2.PageQuery {
+func (q PageQueryParams) PageQuery() db2.PageQuery {
 	// TODO: add GetCursor
 	pageQuery, err := db2.NewPageQuery(q.Cursor, true, q.Order, q.getLimit())
 
@@ -66,25 +66,24 @@ func (q QueryParams) PageQuery() db2.PageQuery {
 	return pageQuery
 }
 
-// OffersQuery query struct for offers end-point
-type OffersQuery struct {
-	QueryParams
-	Seller              string `schema:"seller"`
-	SellingAssetType    string `schema:"selling_asset_type"`
-	SellingAsssetIssuer string `schema:"selling_asset_issuer"`
-	SellingAsssetCode   string `schema:"selling_asset_code"`
-	BuyingAssetType     string `schema:"buying_asset_type"`
-	BuyingAsssetIssuer  string `schema:"buying_asset_issuer"`
-	BuyingAsssetCode    string `schema:"buying_asset_code"`
+// SellingBuyingAssetQueryParams query struct for end-points requiring a selling
+// and buying asset
+type SellingBuyingAssetQueryParams struct {
+	SellingAssetType   string `schema:"selling_asset_type" valid:"assetType~valid types are native credit_alphanum4 or credit_alphanum12"` // TODO using a comma doesn't work in custom message, figure how to make it work
+	SellingAssetIssuer string `schema:"selling_asset_issuer" valid:"accountID"`
+	SellingAssetCode   string `schema:"selling_asset_code" valid:"sellingCode~code too long"`
+	BuyingAssetType    string `schema:"buying_asset_type" valid:"assetType"`
+	BuyingAssetIssuer  string `schema:"buying_asset_issuer" valid:"accountID"`
+	BuyingAssetCode    string `schema:"buying_asset_code" valid:"buyingCode~code too long"`
 }
 
 // Selling an xdr.Asset representing the selling side of the offer.
-func (q OffersQuery) Selling() *xdr.Asset {
+func (q SellingBuyingAssetQueryParams) Selling() *xdr.Asset {
 	if len(q.SellingAssetType) == 0 {
 		return nil
 	}
 
-	selling, err := BuildAsset(q.SellingAssetType, q.SellingAsssetIssuer, q.SellingAsssetCode)
+	selling, err := BuildAsset(q.SellingAssetType, q.SellingAssetIssuer, q.SellingAssetCode)
 
 	if err != nil {
 		panic(err)
@@ -94,18 +93,25 @@ func (q OffersQuery) Selling() *xdr.Asset {
 }
 
 // Buying an xdr.Asset representing the buying side of the offer.
-func (q OffersQuery) Buying() *xdr.Asset {
+func (q SellingBuyingAssetQueryParams) Buying() *xdr.Asset {
 	if len(q.SellingAssetType) == 0 {
 		return nil
 	}
 
-	buying, err := BuildAsset(q.BuyingAssetType, q.BuyingAsssetIssuer, q.BuyingAsssetCode)
+	buying, err := BuildAsset(q.BuyingAssetType, q.BuyingAssetIssuer, q.BuyingAssetCode)
 
 	if err != nil {
 		panic(err)
 	}
 
 	return &buying
+}
+
+// OffersQuery query struct for offers end-point
+type OffersQuery struct {
+	PageQueryParams
+	SellingBuyingAssetQueryParams
+	Seller string `schema:"seller" valid:"accountID"`
 }
 
 // GetOffersHandler is the action handler for the /offers endpoint

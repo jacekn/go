@@ -575,6 +575,7 @@ func TestGetParams(t *testing.T) {
 	defer tt.Finish()
 
 	type QueryParams struct {
+		SellingBuyingAssetQueryParams
 		Account string `schema:"account_id" valid:"accountID~invalid address"`
 		Cursor  string `schema:"cursor"`
 		Order   string `schema:"order"`
@@ -582,9 +583,17 @@ func TestGetParams(t *testing.T) {
 	}
 
 	account := "GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZMFSHONUCEOASW7QC7OX2H"
+	usd := xdr.MustNewCreditAsset("USD", account)
+
 	// Simulate chi's URL params. The following would be equivalent to having a
 	// chi route like the following `/accounts/{account_id}`
-	urlParams := map[string]string{"account_id": account}
+	urlParams := map[string]string{
+		"account_id":           account,
+		"selling_asset_type":   "credit_alphanum4",
+		"selling_asset_code":   "USD",
+		"selling_asset_issuer": account,
+	}
+
 	r := makeAction("/transactions?limit=2&cursor=123456&order=desc", urlParams).R
 	qp := QueryParams{}
 	err := GetParams(&qp, r)
@@ -594,6 +603,20 @@ func TestGetParams(t *testing.T) {
 	tt.Assert.Equal("desc", qp.Order)
 	tt.Assert.Equal(2, qp.Limit)
 	tt.Assert.Equal(account, qp.Account)
+	tt.Assert.Equal(usd.String(), qp.Selling().String()) // TODO: how can I compare usd with *Asset?
+
+	urlParams = map[string]string{
+		"account_id":         account,
+		"selling_asset_type": "native",
+	}
+
+	r = makeAction("/transactions?limit=2&cursor=123456&order=desc", urlParams).R
+	qp = QueryParams{}
+	err = GetParams(&qp, r)
+
+	tt.Assert.NoError(err)
+	native := xdr.MustNewNativeAsset()
+	tt.Assert.Equal(native.String(), qp.Selling().String()) // TODO: how can I compare usd with *Asset?
 
 	urlParams = map[string]string{"account_id": "1"}
 	r = makeAction("/transactions?limit=2&cursor=123456&order=desc", urlParams).R
@@ -605,6 +628,43 @@ func TestGetParams(t *testing.T) {
 		tt.Assert.Equal("bad_request", p.Type)
 		tt.Assert.Equal("account_id", p.Extras["invalid_field"])
 	}
+
+	urlParams = map[string]string{
+		"account_id":         account,
+		"selling_asset_type": "invalid",
+	}
+
+	r = makeAction("/transactions", urlParams).R
+	qp = QueryParams{}
+	err = GetParams(&qp, r)
+
+	if tt.Assert.IsType(&problem.P{}, err) {
+		p := err.(*problem.P)
+		tt.Assert.Equal("bad_request", p.Type)
+		tt.Assert.Equal("selling_asset_type", p.Extras["invalid_field"])
+		tt.Assert.Equal(
+			"valid types are native credit_alphanum4 or credit_alphanum12",
+			p.Extras["reason"],
+		)
+	}
+
+	urlParams = map[string]string{
+		"account_id":         account,
+		"selling_asset_type": "credit_alphanum4",
+		"selling_asset_code": "invalid",
+	}
+
+	r = makeAction("/transactions", urlParams).R
+	qp = QueryParams{}
+	err = GetParams(&qp, r)
+
+	if tt.Assert.IsType(&problem.P{}, err) {
+		p := err.(*problem.P)
+		tt.Assert.Equal("bad_request", p.Type)
+		tt.Assert.Equal("selling_asset_code", p.Extras["invalid_field"])
+		tt.Assert.Equal("code too long", p.Extras["reason"])
+	}
+
 }
 
 type ParamsValidator struct {
