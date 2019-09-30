@@ -574,15 +574,16 @@ func TestGetParams(t *testing.T) {
 	defer tt.Finish()
 
 	type QueryParams struct {
-		Account string `schema:"account_id"`
+		Account string `schema:"account_id" valid:"accountID~invalid address"`
 		Cursor  string `schema:"cursor"`
 		Order   string `schema:"order"`
 		Limit   int    `schema:"limit"`
 	}
 
+	account := "GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZMFSHONUCEOASW7QC7OX2H"
 	// Simulate chi's URL params. The following would be equivalent to having a
 	// chi route like the following `/accounts/{account_id}`
-	urlParams := map[string]string{"account_id": "1"}
+	urlParams := map[string]string{"account_id": account}
 	r := makeAction("/transactions?limit=2&cursor=123456&order=desc", urlParams).R
 	qp := QueryParams{}
 	err := GetParams(&qp, r)
@@ -591,7 +592,18 @@ func TestGetParams(t *testing.T) {
 	tt.Assert.Equal("123456", qp.Cursor)
 	tt.Assert.Equal("desc", qp.Order)
 	tt.Assert.Equal(2, qp.Limit)
-	tt.Assert.Equal("1", qp.Account)
+	tt.Assert.Equal(account, qp.Account)
+
+	urlParams = map[string]string{"account_id": "1"}
+	r = makeAction("/transactions?limit=2&cursor=123456&order=desc", urlParams).R
+	qp = QueryParams{}
+	err = GetParams(&qp, r)
+
+	if tt.Assert.IsType(&problem.P{}, err) {
+		p := err.(*problem.P)
+		tt.Assert.Equal("bad_request", p.Type)
+		tt.Assert.Equal("account_id", p.Extras["invalid_field"])
+	}
 }
 
 func makeTestAction() *Base {

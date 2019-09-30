@@ -6,11 +6,13 @@ import (
 	"mime"
 	"net/http"
 	"net/url"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
 	"unicode/utf8"
 
+	"github.com/asaskevich/govalidator"
 	"github.com/go-chi/chi"
 	"github.com/gorilla/schema"
 
@@ -777,5 +779,37 @@ func GetParams(dst interface{}, r *http.Request) error {
 		}
 	}
 
-	return decoder.Decode(dst, query)
+	if err := decoder.Decode(dst, query); err != nil {
+		return err
+	}
+
+	if _, err := govalidator.ValidateStruct(dst); err != nil {
+		fields := govalidator.ErrorsByField(err)
+
+		for field, message := range fields {
+			err = problem.MakeInvalidFieldProblem(
+				getSchemaTag(dst, field),
+				errors.New(message),
+			)
+			// picking up the first error since extra only support one object
+			// "extras": {
+			// 	"invalid_field": "asset_code",
+			// 	"reason": "max length is: 12"
+			// }
+			// TODO: Can we extend extras to return an array without breaking
+			// SDK clients?
+			break
+		}
+
+		return err
+	}
+
+	return nil
+}
+
+func getSchemaTag(params interface{}, field string) string {
+	v := reflect.ValueOf(params).Elem()
+	qt := v.Type()
+	f, _ := qt.FieldByName(field)
+	return f.Tag.Get("schema")
 }
