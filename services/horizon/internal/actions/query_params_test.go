@@ -54,29 +54,34 @@ func TestPageQueryParamOrderValidation(t *testing.T) {
 
 func TestPageQueryParamLimitValidation(t *testing.T) {
 	for _, testCase := range []struct {
-		desc        string
-		limit       string
-		expectedMsg string
+		desc  string
+		limit string
+		valid bool
 	}{
 		{
 			"positive value",
 			"1",
-			"",
+			true,
+		},
+		{
+			"positive value",
+			"200",
+			true,
+		},
+		{
+			"positive value",
+			"201",
+			false,
 		},
 		{
 			"non-positive",
 			"-1",
-			"non-positive value provided",
+			false,
 		},
 		{
 			"zero",
 			"0",
-			"non-positive value provided",
-		},
-		{
-			"non-numerical value",
-			"foo",
-			"Limit: foo does not validate as int",
+			false,
 		},
 	} {
 		t.Run(testCase.desc, func(t *testing.T) {
@@ -87,11 +92,11 @@ func TestPageQueryParamLimitValidation(t *testing.T) {
 			}
 
 			result, err := govalidator.ValidateStruct(q)
-			if len(testCase.expectedMsg) == 0 {
+			if testCase.valid {
 				tt.NoError(err)
 				tt.True(result)
 			} else {
-				tt.Equal(testCase.expectedMsg, err.Error())
+				tt.Equal("value should be between 1 and 200", err.Error())
 			}
 		})
 	}
