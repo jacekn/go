@@ -9,9 +9,9 @@ import (
 
 // PageQueryParams query struct for pagination params
 type PageQueryParams struct {
-	Cursor string `schema:"cursor"`
-	Order  string `schema:"order"`
-	Limit  string `schema:"limit"` // todo validate uint64
+	Cursor string `schema:"cursor" valid:"-"`
+	Order  string `schema:"order" valid:"in(asc|desc)~valid values are asc or desc"`
+	Limit  string `schema:"limit" valid:"-"` // todo validate uint64
 }
 
 func (q PageQueryParams) getLimit() uint64 {
