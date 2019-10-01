@@ -5,6 +5,10 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/stellar/go/services/horizon/internal/db2"
+	"github.com/stellar/go/services/horizon/internal/ledger"
+	"github.com/stellar/go/services/horizon/internal/toid"
 )
 
 func TestPageQueryParamOrderValidation(t *testing.T) {
@@ -140,4 +144,53 @@ func TestPageQueryParamCursorValidation(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestPageQueryParamGetLimit(t *testing.T) {
+	tt := assert.New(t)
+	q := PageQueryParams{
+		Limit: "",
+	}
+
+	tt.Equal(uint64(db2.DefaultPageSize), q.getLimit())
+
+	q = PageQueryParams{
+		Limit: "20",
+	}
+
+	tt.Equal(uint64(20), q.getLimit())
+}
+
+func TestPageQueryParamGetCursor(t *testing.T) {
+	tt := assert.New(t)
+	q := PageQueryParams{}
+	r := makeAction("/", nil).R
+
+	err := GetParams(&q, r)
+	tt.NoError(err)
+	tt.Equal("", q.getCursor(r))
+
+	r = makeAction("/?cursor=12345", nil).R
+
+	err = GetParams(&q, r)
+	tt.NoError(err)
+	tt.Equal("12345", q.getCursor(r))
+
+	r = makeAction("/?cursor=-1", nil).R
+
+	err = GetParams(&q, r)
+	tt.Error(err)
+
+	r = makeAction("/?cursor=now", nil).R
+	err = GetParams(&q, r)
+	tt.NoError(err)
+	expected := toid.AfterLedger(ledger.CurrentState().HistoryLatest).String()
+	tt.Equal(expected, q.getCursor(r))
+
+	//Last-Event-ID overrides cursor
+	r = makeAction("/?cursor=now", nil).R
+	r.Header.Set("Last-Event-ID", "from_header")
+	err = GetParams(&q, r)
+	tt.NoError(err)
+	tt.Equal("from_header", q.getCursor(r))
 }
