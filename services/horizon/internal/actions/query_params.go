@@ -31,13 +31,6 @@ func (q PageQueryParams) getLimit() uint64 {
 		panic(err)
 	}
 
-	// TODO: move this validation to validator
-	// if asI64 <= 0 {
-	// 	err = errors.New("invalid limit: non-positive value provided")
-	// } else if asI64 > int64(max) {
-	// 	err = errors.Errorf("invalid limit: value provided that is over limit max of %d", max)
-	// }
-
 	return uint64(asI64)
 }
 
@@ -47,11 +40,7 @@ func (q PageQueryParams) PageQuery() db2.PageQuery {
 	pageQuery, err := db2.NewPageQuery(q.Cursor, true, q.Order, q.getLimit())
 
 	if err != nil {
-		// return pageQuery, problem.MakeInvalidFieldProblem(
-		// 	"pagination parameters",
-		// 	err,
-		// )
-		// this should have been validated before
+		// should have been valid
 		panic(err)
 	}
 
