@@ -1,20 +1,14 @@
 package actions
 
 import (
-	"os"
 	"testing"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestMain(m *testing.M) {
-	InitValidators()
-	code := m.Run()
-	os.Exit(code)
-}
-
 func TestBuyingCodeValidator(t *testing.T) {
+	InitValidators()
 	for _, testCase := range []struct {
 		assetType string
 		assetCode string
@@ -66,6 +60,7 @@ func TestBuyingCodeValidator(t *testing.T) {
 }
 
 func TestSellingCodeValidator(t *testing.T) {
+	InitValidators()
 	for _, testCase := range []struct {
 		assetType string
 		assetCode string
@@ -118,6 +113,7 @@ func TestSellingCodeValidator(t *testing.T) {
 }
 
 func TestAssetTypeValidator(t *testing.T) {
+	InitValidators()
 	type Query struct {
 		AssetType string `valid:"assetType~invalid asset type"`
 	}
@@ -166,6 +162,7 @@ func TestAssetTypeValidator(t *testing.T) {
 }
 
 func TestAccountIDValidator(t *testing.T) {
+	InitValidators()
 	type Query struct {
 		Account string `valid:"accountID~invalid address"`
 	}
@@ -210,6 +207,7 @@ func TestAccountIDValidator(t *testing.T) {
 }
 
 func TestIsValidCursorValidator(t *testing.T) {
+	InitValidators()
 	type Query struct {
 		Cursor string `valid:"cursor~should not be a negative number"`
 	}
