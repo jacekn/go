@@ -11,7 +11,7 @@ import (
 type PageQueryParams struct {
 	Cursor string `schema:"cursor" valid:"-"`
 	Order  string `schema:"order" valid:"in(asc|desc)~valid values are asc or desc"`
-	Limit  string `schema:"limit" valid:"-"` // todo validate uint64
+	Limit  string `schema:"limit" valid:"int,isPositive~non-positive value provided"`
 }
 
 func (q PageQueryParams) getLimit() uint64 {
