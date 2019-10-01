@@ -208,3 +208,47 @@ func TestAccountIDValidator(t *testing.T) {
 		})
 	}
 }
+
+func TestIsValidCursorValidator(t *testing.T) {
+	type Query struct {
+		Cursor string `valid:"cursor~should not be a negative number"`
+	}
+
+	for _, testCase := range []struct {
+		value string
+		valid bool
+	}{
+		{
+			"10",
+			true,
+		},
+		{
+			"0",
+			true,
+		},
+		{
+			"-1",
+			false,
+		},
+		{
+			"a-string",
+			true,
+		},
+	} {
+		t.Run(testCase.value, func(t *testing.T) {
+			tt := assert.New(t)
+
+			q := Query{
+				Cursor: testCase.value,
+			}
+
+			result, err := govalidator.ValidateStruct(q)
+			if testCase.valid {
+				tt.NoError(err)
+				tt.True(result)
+			} else {
+				tt.Equal("should not be a negative number", err.Error())
+			}
+		})
+	}
+}

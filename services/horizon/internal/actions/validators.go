@@ -1,6 +1,8 @@
 package actions
 
 import (
+	"strconv"
+
 	"github.com/asaskevich/govalidator"
 
 	"github.com/stellar/go/services/horizon/internal/assets"
@@ -15,8 +17,19 @@ type Validateable interface {
 func InitValidators() {
 	govalidator.TagMap["accountID"] = govalidator.Validator(isAccountID)
 	govalidator.TagMap["assetType"] = govalidator.Validator(isAssetType)
+	govalidator.TagMap["cursor"] = govalidator.Validator(isValidCursor)
 	govalidator.CustomTypeTagMap.Set("sellingCode", isValidSellingCode)
 	govalidator.CustomTypeTagMap.Set("buyingCode", isValidBuyingCode)
+}
+
+func isValidCursor(str string) bool {
+	// If cursor is a negative value, return false
+	cursorInt, err := strconv.Atoi(str)
+	if err == nil && cursorInt < 0 {
+		return false
+	}
+
+	return true
 }
 
 func isValidSellingCode(i interface{}, context interface{}) bool {
