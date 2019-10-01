@@ -1,9 +1,12 @@
 package actions
 
 import (
+	"net/http"
 	"strconv"
 
 	"github.com/stellar/go/services/horizon/internal/db2"
+	"github.com/stellar/go/services/horizon/internal/ledger"
+	"github.com/stellar/go/services/horizon/internal/toid"
 	"github.com/stellar/go/xdr"
 )
 
@@ -34,10 +37,34 @@ func (q PageQueryParams) getLimit() uint64 {
 	return uint64(asI64)
 }
 
+func (q PageQueryParams) getCursor(r *http.Request) string {
+	cursor := q.Cursor
+
+	if len(cursor) == 0 {
+		return cursor
+	}
+
+	if cursor == "now" {
+		tid := toid.AfterLedger(ledger.CurrentState().HistoryLatest)
+		cursor = tid.String()
+	}
+
+	if lastEventID := r.Header.Get("Last-Event-ID"); lastEventID != "" {
+		cursor = lastEventID
+	}
+
+	return cursor
+}
+
 // PageQuery returns the page query.
-func (q PageQueryParams) PageQuery() db2.PageQuery {
-	// TODO: add GetCursor
-	pageQuery, err := db2.NewPageQuery(q.Cursor, true, q.Order, q.getLimit())
+func (q PageQueryParams) PageQuery(r *http.Request, opts ...Opt) db2.PageQuery {
+	disableCursorValidation := false
+	for _, opt := range opts {
+		if opt == DisableCursorValidation {
+			disableCursorValidation = true
+		}
+	}
+	pageQuery, err := db2.NewPageQuery(q.getCursor(r), !disableCursorValidation, q.Order, q.getLimit())
 
 	if err != nil {
 		// should have been valid

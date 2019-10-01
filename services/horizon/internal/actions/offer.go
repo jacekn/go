@@ -34,7 +34,7 @@ func (handler GetOffersHandler) GetResourcePage(r *http.Request) ([]hal.Pageable
 	}
 
 	query := history.OffersQuery{
-		PageQuery: qp.PageQuery(),
+		PageQuery: qp.PageQuery(r),
 		SellerID:  qp.Seller,
 		Selling:   qp.Selling(),
 		Buying:    qp.Buying(),
