@@ -63,7 +63,6 @@ func TestBuyingCodeValidator(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestSellingCodeValidator(t *testing.T) {
@@ -205,6 +204,46 @@ func TestAccountIDValidator(t *testing.T) {
 				tt.True(result)
 			} else {
 				tt.Equal(testCase.expectedError, err.Error())
+			}
+		})
+	}
+}
+
+func TestIsPositiveValidator(t *testing.T) {
+	type Limit struct {
+		Limit string `valid:"isPositive~non-positive value provided"`
+	}
+
+	for _, testCase := range []struct {
+		value string
+		valid bool
+	}{
+		{
+			"1",
+			true,
+		},
+		{
+			"0",
+			false,
+		},
+		{
+			"-1",
+			false,
+		},
+	} {
+		t.Run(testCase.value, func(t *testing.T) {
+			tt := assert.New(t)
+
+			q := Limit{
+				Limit: testCase.value,
+			}
+
+			result, err := govalidator.ValidateStruct(q)
+			if testCase.valid {
+				tt.NoError(err)
+				tt.True(result)
+			} else {
+				tt.Equal("non-positive value provided", err.Error())
 			}
 		})
 	}
