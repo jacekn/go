@@ -20,6 +20,11 @@ func InitValidators() {
 	govalidator.TagMap["cursor"] = govalidator.Validator(isValidCursor)
 	govalidator.CustomTypeTagMap.Set("sellingCode", isValidSellingCode)
 	govalidator.CustomTypeTagMap.Set("buyingCode", isValidBuyingCode)
+
+	// govalidator handles embedded structs as fields and tries to find a
+	// validator for them, failing if it doesn't find one. This relaxes this
+	// setup a bit, so it doesn't try to validate on the embedded struct.
+	govalidator.SetFieldsRequiredByDefault(false)
 }
 
 func isValidCursor(str string) bool {
