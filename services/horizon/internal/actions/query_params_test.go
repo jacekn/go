@@ -101,3 +101,43 @@ func TestPageQueryParamLimitValidation(t *testing.T) {
 		})
 	}
 }
+
+func TestPageQueryParamCursorValidation(t *testing.T) {
+	for _, testCase := range []struct {
+		value string
+		valid bool
+	}{
+		{
+			"1",
+			true,
+		},
+		{
+			"0",
+			true,
+		},
+		{
+			"string",
+			true,
+		},
+		{
+			"-1",
+			false,
+		},
+	} {
+		t.Run(testCase.value, func(t *testing.T) {
+			tt := assert.New(t)
+
+			q := PageQueryParams{
+				Cursor: testCase.value,
+			}
+
+			result, err := govalidator.ValidateStruct(q)
+			if testCase.valid {
+				tt.NoError(err)
+				tt.True(result)
+			} else {
+				tt.Equal("the value should not be a negative number", err.Error())
+			}
+		})
+	}
+}

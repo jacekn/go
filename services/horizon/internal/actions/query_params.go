@@ -12,7 +12,7 @@ import (
 
 // PageQueryParams query struct for pagination params
 type PageQueryParams struct {
-	Cursor string `schema:"cursor" valid:"-"`
+	Cursor string `schema:"cursor" valid:"cursor~the value should not be a negative number"`
 	Order  string `schema:"order" valid:"in(asc|desc)~valid values are asc or desc"`
 	Limit  string `schema:"limit" valid:"int,range(1|200)~value should be between 1 and 200"`
 }
