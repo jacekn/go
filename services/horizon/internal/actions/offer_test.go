@@ -10,6 +10,7 @@ import (
 	"github.com/stellar/go/services/horizon/internal/ingest"
 	"github.com/stellar/go/services/horizon/internal/test"
 	"github.com/stellar/go/support/render/hal"
+	"github.com/stellar/go/support/render/problem"
 	"github.com/stellar/go/xdr"
 )
 
@@ -119,6 +120,20 @@ func TestGetOffersHandler(t *testing.T) {
 		for _, offer := range offers {
 			tt.Assert.Equal(issuer.Address(), offer.Seller)
 		}
+
+		_, err = handler.GetResourcePage(makeRequest(
+			t,
+			map[string]string{
+				"seller": "GCXEWJ6U4KPGTNTBY5HX4WQ2EEVPWV2QKXEYIQ32IDYIX",
+			},
+			map[string]string{},
+		))
+		tt.Assert.Error(err)
+		tt.Assert.IsType(&problem.P{}, err)
+		p := err.(*problem.P)
+		tt.Assert.Equal("bad_request", p.Type)
+		tt.Assert.Equal("seller", p.Extras["invalid_field"])
+		tt.Assert.Equal("invalid Account ID", p.Extras["reason"])
 	})
 
 	t.Run("Filter by selling asset", func(t *testing.T) {

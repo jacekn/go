@@ -15,7 +15,7 @@ import (
 type OffersQuery struct {
 	PageQueryParams
 	SellingBuyingAssetQueryParams
-	Seller string `schema:"seller" valid:"accountID"`
+	Seller string `schema:"seller" valid:"accountID~invalid Account ID"`
 }
 
 // GetOffersHandler is the action handler for the /offers endpoint
