@@ -571,6 +571,7 @@ func TestFullURL(t *testing.T) {
 }
 
 func TestGetParams(t *testing.T) {
+	InitValidators()
 	tt := test.Start(t)
 	defer tt.Finish()
 
@@ -679,6 +680,7 @@ func (pv ParamsValidator) Validate() error {
 }
 
 func TestGetParamsCustomValidator(t *testing.T) {
+	InitValidators()
 	tt := test.Start(t)
 	defer tt.Finish()
 
