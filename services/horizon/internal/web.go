@@ -164,6 +164,7 @@ func (w *web) mustInstallActions(
 	if w == nil {
 		log.Fatal("missing web instance for installing web actions")
 	}
+	actions.InitValidators() // Setup query params validators
 
 	r := w.router
 	r.Get("/", RootAction{}.Handle)
