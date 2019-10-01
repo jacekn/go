@@ -60,6 +60,7 @@ var (
 )
 
 func TestGetOffersHandler(t *testing.T) {
+	InitValidators()
 	tt := test.Start(t)
 	defer tt.Finish()
 	test.ResetHorizonDB(t, tt.HorizonDB)
