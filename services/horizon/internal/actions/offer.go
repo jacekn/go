@@ -77,13 +77,17 @@ type SellingBuyingAssetQueryParams struct {
 	BuyingAssetCode    string `schema:"buying_asset_code" valid:"buyingCode~code too long"`
 }
 
-// Selling an xdr.Asset representing the selling side of the offer.
+// Selling returns an xdr.Asset representing the selling side of the offer.
 func (q SellingBuyingAssetQueryParams) Selling() *xdr.Asset {
 	if len(q.SellingAssetType) == 0 {
 		return nil
 	}
 
-	selling, err := BuildAsset(q.SellingAssetType, q.SellingAssetIssuer, q.SellingAssetCode)
+	selling, err := BuildAsset(
+		q.SellingAssetType,
+		q.SellingAssetIssuer,
+		q.SellingAssetCode,
+	)
 
 	if err != nil {
 		panic(err)
@@ -92,13 +96,17 @@ func (q SellingBuyingAssetQueryParams) Selling() *xdr.Asset {
 	return &selling
 }
 
-// Buying an xdr.Asset representing the buying side of the offer.
+// Buying returns an *xdr.Asset representing the buying side of the offer.
 func (q SellingBuyingAssetQueryParams) Buying() *xdr.Asset {
-	if len(q.SellingAssetType) == 0 {
+	if len(q.BuyingAssetType) == 0 {
 		return nil
 	}
 
-	buying, err := BuildAsset(q.BuyingAssetType, q.BuyingAssetIssuer, q.BuyingAssetCode)
+	buying, err := BuildAsset(
+		q.BuyingAssetType,
+		q.BuyingAssetIssuer,
+		q.BuyingAssetCode,
+	)
 
 	if err != nil {
 		panic(err)
