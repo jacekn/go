@@ -64,7 +64,7 @@ type SellingBuyingAssetQueryParams struct {
 	SellingAssetType   string `schema:"selling_asset_type" valid:"assetType~valid types are native credit_alphanum4 or credit_alphanum12"` // TODO using a comma doesn't work in custom message, figure how to make it work
 	SellingAssetIssuer string `schema:"selling_asset_issuer" valid:"accountID"`
 	SellingAssetCode   string `schema:"selling_asset_code" valid:"sellingCode~code too long"`
-	BuyingAssetType    string `schema:"buying_asset_type" valid:"assetType"`
+	BuyingAssetType    string `schema:"buying_asset_type" valid:"assetType~~valid types are native credit_alphanum4 or credit_alphanum12"`
 	BuyingAssetIssuer  string `schema:"buying_asset_issuer" valid:"accountID"`
 	BuyingAssetCode    string `schema:"buying_asset_code" valid:"buyingCode~code too long"`
 }
