@@ -789,15 +789,10 @@ func GetParams(dst interface{}, r *http.Request) error {
 		for field, message := range fields {
 			err = problem.MakeInvalidFieldProblem(
 				getSchemaTag(dst, field),
-				errors.New(message),
+				errors.New(validatorErrorFor(message)),
 			)
-			// picking up the first error since extra only support one object
-			// "extras": {
-			// 	"invalid_field": "asset_code",
-			// 	"reason": "max length is: 12"
-			// }
-			// TODO: Can we extend extras to return an array without breaking
-			// SDK clients?
+			// picking up the first error since extra only support one object,
+			// not a list of errors.
 			break
 		}
 

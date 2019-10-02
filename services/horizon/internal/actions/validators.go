@@ -2,6 +2,7 @@ package actions
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/asaskevich/govalidator"
 
@@ -25,6 +26,19 @@ func InitValidators() {
 	// validator for them, failing if it doesn't find one. This relaxes this
 	// setup a bit, so it doesn't try to validate on the embedded struct.
 	govalidator.SetFieldsRequiredByDefault(false)
+}
+
+func validatorErrorFor(msg string) string {
+	switch {
+	case strings.HasSuffix(msg, "does not validate as accountID"):
+		return "Account ID must start with `G` and contain 56 alphanum characters."
+	case strings.HasSuffix(msg, "does not validate as assetType"):
+		return "Asset type must be native, credit_alphanum4 or credit_alphanum12."
+	case strings.HasSuffix(msg, "does not validate as sellingCode") || strings.HasSuffix(msg, "does not validate as buyingCode"):
+		return "Asset code must be 1-12 alphanumeric characters."
+	default:
+		return msg
+	}
 }
 
 func isValidCursor(str string) bool {

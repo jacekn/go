@@ -577,7 +577,7 @@ func TestGetParams(t *testing.T) {
 
 	type QueryParams struct {
 		SellingBuyingAssetQueryParams
-		Account string `schema:"account_id" valid:"accountID~invalid address"`
+		Account string `schema:"account_id" valid:"accountID"`
 		Cursor  string `schema:"cursor"`
 		Order   string `schema:"order"`
 		Limit   int    `schema:"limit"`
@@ -628,6 +628,10 @@ func TestGetParams(t *testing.T) {
 		p := err.(*problem.P)
 		tt.Assert.Equal("bad_request", p.Type)
 		tt.Assert.Equal("account_id", p.Extras["invalid_field"])
+		tt.Assert.Equal(
+			"Account ID must start with `G` and contain 56 alphanum characters.",
+			p.Extras["reason"],
+		)
 	}
 
 	urlParams = map[string]string{
@@ -644,7 +648,7 @@ func TestGetParams(t *testing.T) {
 		tt.Assert.Equal("bad_request", p.Type)
 		tt.Assert.Equal("selling_asset_type", p.Extras["invalid_field"])
 		tt.Assert.Equal(
-			"valid types are native credit_alphanum4 or credit_alphanum12",
+			"Asset type must be native, credit_alphanum4 or credit_alphanum12.",
 			p.Extras["reason"],
 		)
 	}
@@ -663,7 +667,10 @@ func TestGetParams(t *testing.T) {
 		p := err.(*problem.P)
 		tt.Assert.Equal("bad_request", p.Type)
 		tt.Assert.Equal("selling_asset_code", p.Extras["invalid_field"])
-		tt.Assert.Equal("code too long", p.Extras["reason"])
+		tt.Assert.Equal(
+			"Asset code must be 1-12 alphanumeric characters.",
+			p.Extras["reason"],
+		)
 	}
 
 }
