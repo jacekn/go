@@ -53,7 +53,7 @@ func TestBuyingCodeValidator(t *testing.T) {
 				tt.NoError(err)
 				tt.True(result)
 			} else {
-				tt.Equal("code too long", err.Error())
+				tt.Error(err)
 			}
 		})
 	}
@@ -105,7 +105,7 @@ func TestSellingCodeValidator(t *testing.T) {
 				tt.NoError(err)
 				tt.True(result)
 			} else {
-				tt.Equal("code too long", err.Error())
+				tt.Error(err)
 			}
 		})
 	}
