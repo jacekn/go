@@ -12,6 +12,7 @@ import (
 )
 
 func TestPageQueryParamOrderValidation(t *testing.T) {
+	InitValidators()
 	for _, testCase := range []struct {
 		desc  string
 		order string
@@ -57,6 +58,7 @@ func TestPageQueryParamOrderValidation(t *testing.T) {
 }
 
 func TestPageQueryParamLimitValidation(t *testing.T) {
+	InitValidators()
 	for _, testCase := range []struct {
 		desc  string
 		limit string
@@ -107,6 +109,7 @@ func TestPageQueryParamLimitValidation(t *testing.T) {
 }
 
 func TestPageQueryParamCursorValidation(t *testing.T) {
+	InitValidators()
 	for _, testCase := range []struct {
 		value string
 		valid bool
@@ -147,6 +150,7 @@ func TestPageQueryParamCursorValidation(t *testing.T) {
 }
 
 func TestPageQueryParamGetLimit(t *testing.T) {
+	InitValidators()
 	tt := assert.New(t)
 	q := PageQueryParams{
 		Limit: "",
@@ -162,6 +166,7 @@ func TestPageQueryParamGetLimit(t *testing.T) {
 }
 
 func TestPageQueryParamGetCursor(t *testing.T) {
+	InitValidators()
 	tt := assert.New(t)
 	q := PageQueryParams{}
 	r := makeAction("/", nil).R
