@@ -9,6 +9,7 @@ import (
 	"github.com/stellar/go/services/horizon/internal/db2"
 	"github.com/stellar/go/services/horizon/internal/ledger"
 	"github.com/stellar/go/services/horizon/internal/toid"
+	"github.com/stellar/go/support/render/problem"
 )
 
 func TestPageQueryParamOrderValidation(t *testing.T) {
@@ -198,4 +199,46 @@ func TestPageQueryParamGetCursor(t *testing.T) {
 	err = GetParams(&q, r)
 	tt.NoError(err)
 	tt.Equal("from_header", q.getCursor(r))
+}
+
+func TestSellingBuyingAssetQueryParams(t *testing.T) {
+	InitValidators()
+	tt := assert.New(t)
+
+	urlParams := map[string]string{
+		"selling_asset_type": "invalid",
+	}
+
+	r := makeAction("/", urlParams).R
+	qp := SellingBuyingAssetQueryParams{}
+	err := GetParams(&qp, r)
+
+	if tt.IsType(&problem.P{}, err) {
+		p := err.(*problem.P)
+		tt.Equal("bad_request", p.Type)
+		tt.Equal("selling_asset_type", p.Extras["invalid_field"])
+		tt.Equal(
+			"Asset type must be native, credit_alphanum4 or credit_alphanum12.",
+			p.Extras["reason"],
+		)
+	}
+
+	urlParams = map[string]string{
+		"selling_asset_type": "credit_alphanum4",
+		"selling_asset_code": "invalid",
+	}
+
+	r = makeAction("/", urlParams).R
+	qp = SellingBuyingAssetQueryParams{}
+	err = GetParams(&qp, r)
+
+	if tt.IsType(&problem.P{}, err) {
+		p := err.(*problem.P)
+		tt.Equal("bad_request", p.Type)
+		tt.Equal("selling_asset_code", p.Extras["invalid_field"])
+		tt.Equal(
+			"Asset code must be 1-12 alphanumeric characters.",
+			p.Extras["reason"],
+		)
+	}
 }

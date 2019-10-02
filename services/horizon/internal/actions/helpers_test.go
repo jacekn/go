@@ -633,46 +633,6 @@ func TestGetParams(t *testing.T) {
 			p.Extras["reason"],
 		)
 	}
-
-	urlParams = map[string]string{
-		"account_id":         account,
-		"selling_asset_type": "invalid",
-	}
-
-	r = makeAction("/transactions", urlParams).R
-	qp = QueryParams{}
-	err = GetParams(&qp, r)
-
-	if tt.Assert.IsType(&problem.P{}, err) {
-		p := err.(*problem.P)
-		tt.Assert.Equal("bad_request", p.Type)
-		tt.Assert.Equal("selling_asset_type", p.Extras["invalid_field"])
-		tt.Assert.Equal(
-			"Asset type must be native, credit_alphanum4 or credit_alphanum12.",
-			p.Extras["reason"],
-		)
-	}
-
-	urlParams = map[string]string{
-		"account_id":         account,
-		"selling_asset_type": "credit_alphanum4",
-		"selling_asset_code": "invalid",
-	}
-
-	r = makeAction("/transactions", urlParams).R
-	qp = QueryParams{}
-	err = GetParams(&qp, r)
-
-	if tt.Assert.IsType(&problem.P{}, err) {
-		p := err.(*problem.P)
-		tt.Assert.Equal("bad_request", p.Type)
-		tt.Assert.Equal("selling_asset_code", p.Extras["invalid_field"])
-		tt.Assert.Equal(
-			"Asset code must be 1-12 alphanumeric characters.",
-			p.Extras["reason"],
-		)
-	}
-
 }
 
 type ParamsValidator struct {
