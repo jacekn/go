@@ -14,6 +14,7 @@ commands:
             # 1. CIRCLE_REPOSITORY_URL is updated to use https rather than ssh
             # 2. Removed ssh specific sections
 
+            set -x
             # Use https rather that ssh to clone public projects
             CIRCLE_REPOSITORY_URL=${CIRCLE_REPOSITORY_URL/://}
             CIRCLE_REPOSITORY_URL=${CIRCLE_REPOSITORY_URL/git@/https://}
@@ -372,43 +373,3 @@ workflows:
       - check_code_1_14
       - test_code_1_13
       - test_code_1_13_postgres10
-      - test_code_1_14
-      - test_code_1_14_postgres10
-      - publish_state_diff_docker_image:
-          filters:
-              branches:
-                only:
-                  - master
-
-  build_and_deploy:
-    jobs:
-      - publish_artifacts:
-          filters:
-              tags:
-                ignore: snapshots
-              branches:
-                ignore: /.*/
-      - publish_horizon_docker_image:
-          filters:
-              tags:
-                only: /^horizon-v.*/
-              branches:
-                ignore: /.*/
-      - hold: # <<< A job that will require manual approval in the CircleCI web application.
-          filters:
-              tags:
-                only: /^horizon-v.*/
-              branches:
-                ignore: /.*/
-          type: approval # <<< This key-value pair will set your workflow to a status of "On Hold"
-          requires: # We only run the "hold" job when publish_horizon_docker_image has succeeded
-           - publish_horizon_docker_image
-      - publish_latest_horizon_docker_image:
-          filters:
-              tags:
-                only: /^horizon-v.*/
-              branches:
-                ignore: /.*/
-          # Pushing stellar/horizon:latest to docker hub requires manual approval
-          requires:
-            - hold
