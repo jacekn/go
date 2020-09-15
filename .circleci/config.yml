@@ -14,6 +14,7 @@ commands:
             # 1. CIRCLE_REPOSITORY_URL is updated to use https rather than ssh
             # 2. Removed ssh specific sections
 
+
             set -x
             # Use https rather that ssh to clone public projects
             CIRCLE_REPOSITORY_URL=${CIRCLE_REPOSITORY_URL/://}
